@@ -150,7 +150,38 @@ files directly from a mounted Google Drive during training was extremely
 slow (each file read is a network round trip). Fixed by staging the image
 folder onto Colab's local disk once per session before training begins.
 
-## 7. Results
+**Grad-CAM failing on a cold checkpoint load:** Grad-CAM requires gradients
+to flow back through the target convolutional layer. If the explainability
+cells are run in a session where training (Cell 8) has not yet executed,
+the backbone remains frozen from model construction (Cell 6), and Grad-CAM
+silently receives `None` gradients — masked in the normal top-to-bottom
+notebook flow, since fine-tuning always unfreezes the full network first,
+but a real failure mode if a saved checkpoint is loaded and explainability
+is run directly without retraining in that session. Fixed by explicitly
+setting `requires_grad = True` on all parameters immediately after loading
+a checkpoint, since freezing only ever served a purpose during phase-1
+optimization, not inference.
+
+## 7. Stretch Goal: Interactive UI Prototype
+
+Of the six listed stretch goals (segmentation, multi-modal inputs, UI
+prototype, self-supervised learning, external validation, uncertainty
+quantification), one was implemented: an interactive UI, built with
+Gradio, wrapping the existing inference and Grad-CAM pipeline. Given an
+uploaded image, a detection threshold, and a top-k setting, it returns a
+per-class probability chart, Grad-CAM heatmaps for the highest-probability
+classes, and a plain-text findings summary — all without requiring the user
+to touch code. It launches with a temporary, unauthenticated public link
+suitable for demonstration, not deployment.
+
+The remaining five stretch goals were deliberately not attempted: each
+represents substantial additional scope (a different model architecture and
+mask-level ground truth for segmentation, a second dataset for external
+validation, an architecture change plus retraining for multi-modal fusion,
+and so on) rather than an incremental addition, and were judged out of
+scope given the project timeline.
+
+## 8. Results
 
 | Metric | Value |
 |---|---|
@@ -180,7 +211,7 @@ not a bug: Youden's J maximizes sensitivity + specificity, not F1 directly,
 so there is no guarantee it also maximizes F1 — the two objectives can
 disagree, particularly under heavy imbalance.
 
-## 8. Explainability
+## 9. Explainability
 
 Grad-CAM heatmaps (target layer: `features.norm5`, the final batch-norm
 layer before global pooling) were generated for sample test images and
@@ -194,7 +225,7 @@ heatmap for direct visual comparison. This is a qualitative check only — no
 quantitative localization metric (e.g. IoU) was computed, since the modeling
 task here is classification, not detection.
 
-## 9. Limitations
+## 10. Limitations
 
 - **Not a diagnostic device.** A research/decision-support prototype only;
   not validated or cleared for clinical use.
@@ -212,8 +243,11 @@ task here is classification, not detection.
 - **Grad-CAM is a debugging aid, not proof of correctness.** A plausible
   heatmap indicates the model attended to a sensible region; it does not
   confirm the model's reasoning matches a clinician's.
+- **The UI prototype is a demo mechanism, not a deployment.** No
+  authentication, minimal input validation, and a temporary public link —
+  not suitable for handling real patient data.
 
-## 10. Ethical Considerations
+## 11. Ethical Considerations
 
 The dataset is de-identified by NIH; this pipeline introduces no additional
 PII. Any real-world deployment on patient data would require appropriate
@@ -223,7 +257,7 @@ source data but were not used as model inputs or audited for subgroup
 performance disparities here — a necessary step before any real-world
 consideration of this model, and an explicit gap in the current work.
 
-## 11. Conclusion & Future Work
+## 12. Conclusion & Future Work
 
 The model achieves a test macro-AUC of 0.778, consistent with published
 DenseNet-based baselines on this dataset, with the class-imbalance,
