@@ -7,6 +7,12 @@ transfer learning for multi-label classification, and Grad-CAM for explainabilit
 **This is a research/decision-support prototype — not a certified diagnostic
 device.** See [Limitations](#limitations) below.
 
+**Stretch goal implemented:** an interactive Gradio UI (Cell 13) — upload an
+X-ray, get live predictions and Grad-CAM heatmaps without touching code.
+
+![Gradio UI demo](screenshots/ss1.png)
+![Gradio UI demo](screenshots/ss2.png)
+
 ## Results
 
 Trained on the full ~112k-image NIH ChestX-ray14 dataset with a patient-disjoint
@@ -78,6 +84,9 @@ also produced by the notebook and saved under `outputs/`.
 - **Explainability**: Grad-CAM (target layer `features.norm5`), overlaid on
   original X-rays, cross-checked against NIH's ground-truth bounding boxes
   where available.
+- **Interactive demo**: a Gradio interface wrapping inference + Grad-CAM —
+  upload an image, adjust the detection threshold, get predictions and
+  heatmaps back live (Cell 13).
 
 ## Repository Structure
 
@@ -85,6 +94,8 @@ also produced by the notebook and saved under `outputs/`.
 chestxray14-diagnosis-assistant/
 ├── Medical_Image_Diagnosis_Assistant.ipynb   # full pipeline, run top to bottom in Colab
 ├── README.md
+├── TECHNICAL_REPORT.md                        # methodology, experiments, results, insights
+├── screenshots/                                # Gradio UI demo screenshots
 └── .gitignore
 ```
 
@@ -107,7 +118,9 @@ Google Drive.
 4. **Run the cells in order**, top to bottom. Cell 1 installs dependencies and
    checks the environment; Cell 2 downloads the dataset; Cells 3–7 handle
    exploration, splitting, and model setup; Cell 8 trains (the longest step);
-   Cells 9–11 evaluate, generate explainability visuals, and demo inference.
+   Cells 9–11 evaluate, generate explainability visuals, and demo inference;
+   Cell 13 launches an interactive Gradio UI (stretch goal) for live
+   predictions in-browser.
 
 ## Dependencies
 
@@ -121,6 +134,7 @@ credentials above.
 - grad-cam (pytorch-grad-cam)
 - torchmetrics, tensorboard
 - kagglehub (dataset acquisition)
+- gradio (interactive UI, Cell 13)
 
 ## Limitations
 
@@ -135,6 +149,9 @@ credentials above.
 - **Grad-CAM caveats**: heatmaps show what influenced a prediction, not proof
   the model reasoned correctly — a debugging/transparency aid, not a
   correctness guarantee.
+- **UI is a prototype, not a deployment**: the Gradio interface (Cell 13)
+  runs a temporary, unauthenticated public link for demo purposes — not
+  suitable for handling real patient data.
 
 Full discussion of design decisions, limitations, and ethical considerations is
 in the notebook's final markdown cell.
